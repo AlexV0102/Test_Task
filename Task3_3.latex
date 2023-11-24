@@ -1,0 +1,52 @@
+3) Тема "Сума простих чисел у заданому діапазоні"
+
+Прості числа - це числа, які мають лише два дільника: 1 та саме число.
+Ваша задача реалізувати код, який буде обчислювати суму всіх простих чисел у діапазоні [a,b]
+
+Алгоритм:
+
+<imprecise>
+
+1) Задати нижню та верхню границю діапазону
+2) Починаючи з нижньої границі, перевіряти число на простоту
+3) Якщо число є простим додати його до суми
+4) Перейти до наступного числа з кроком 1, та перейти повторити дію 2), до поки число не більше за верхню межу
+5) Повернути результат
+</imprecise>
+
+Код задачі:
+
+<imprecise>
+#include <iostream>
+
+bool isPrime(int number) {
+    if (number < 2) {
+        return false;
+    }
+    for (int i = 2; i * i <= number; ++i) {
+        if (number % i == 0) {
+            return false;
+        }
+    }
+    return true;
+}
+
+int sumOfPrimes(int a, int b) {
+    int sum = 0;
+    for (int num = a; num <= b; ++num) {
+        if (isPrime(num)) {
+            sum += num;
+        }
+    }
+    return sum;
+}
+
+int main() {
+    int a = 10, b = 50;
+
+    int result = sumOfPrimes(a, b);
+    std::cout << "Sum of prime numbers from " << a << " to " << b << ": " << result << std::endl;
+
+    return 0;
+}
+</imprecise>
