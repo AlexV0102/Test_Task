@@ -5,135 +5,123 @@
 #include <vector>
 #include <sstream>
 #include <set>
-// Розбиваємо стрічку на ключі та текст
-void split_string(std::string& str, std::string& keys) {
-    std::istringstream iss(str);
-    // Потік задля розбитя стрічки у масив
-    std::vector<std::string> tokens;
-    while (iss >> str) {
-        tokens.push_back(str);
-    }
-    str.clear();
-    for (size_t i = 0; i < tokens.size(); i++)
-    {   // Перевірка на ключі
-        if (std::isdigit(tokens[i][0])) {
-            std::set<char> key(tokens[i].begin(), tokens[i].end());
-            if (key.size() != tokens[i].size()) {
-                throw std::runtime_error("The key must consist of unique digits\n");
-            }
-            keys += tokens[i];
-        }
-        else {
-            // Запис тексту у стрічку
-            str += tokens[i];
-        }
-    }
-}
-std::string ecnrypt_string(std::string& str){
-    std::string result;
-    std::string keys;
-    split_string(str, keys);
-    size_t str_size = str.size();
-    // Матриця для запису окремих символів тексту
-    std::vector<std::vector<std::string>> matrix;
-    size_t i = 0;
-    std::vector<std::string> symbols;
-    while(i < str_size)
-    {  
-        // Розбиття стрічки на диграфи
-        if (i + 2 < str_size) {
-            std::string digraph;
-            digraph.push_back(str[i]);
-            digraph.push_back(str[i + 1]);
-            symbols.push_back(digraph);
-            i += 2;     
-        }
-        else {
-            symbols.push_back(str.substr(i));
-            break;
-            }
-        // Одна літера
-        if (i + 1 < str_size) {
-            std::string symbol;
-            symbol.push_back(str[i]);
-            symbols.push_back(symbol);
-            i++; 
-            }       
-    }
-    size_t numColumns = (symbols.size() + keys.size() - 1) / keys.size();
-    matrix.resize(numColumns);
-
-    size_t j = 0, counter = 0;
-    // Заповнення матриці
-    for (size_t i = 0; i < symbols.size(); i++)
-    {
-        if (counter < keys.size()) {
-            matrix[j].push_back(symbols[i]);
-            counter++;
-            if (counter == keys.size()) {
-                counter = 0;  
-                j++;
+#include <Windows.h>
+#include <conio.h>
+class Task_Solution {
+public:
+    Task_Solution() {}
+    ~Task_Solution() = default;
+    void Start() {
+        Start_Tests();
+        char exit;
+        while (true) {
+            std::cout << "Введіть Ваш тест [Наприклад: 1234 THISISTEST]" << std::endl;
+            std::string user_test;
+            std::getline(std::cin, user_test);
+            std::cout << "Результат шифрування базуючись на ваших даних:\t" << Encrypt_String(user_test) << std::endl;
+            std::cout << "Нажміть ESC, щоб вийти, або будь-яку іншу клавішу щоб ввести нові данні" << std::endl;
+            exit = _getch();
+            if (exit == 27) {
+                std::cout << "Гарного дня!" << std::endl;
+                break;
             }
         }
     }
-    // Масив стрічок, необхідний для зберігання стовбців матриці, елементи яких об'єднуються у одну стрічку у відповідному порядку
-    std::vector<std::string> encrypted(keys.size());
-    for (size_t i = 0; i < keys.size(); i++)
-    {
-       
-        int key = keys[i] - '0';
-        std::string word;
-        for (size_t j = 0; j < matrix.size(); j++)
+private:
+    std::string Encrypt_String(std::string& str) {
+        std::string result;
+        std::string keys;
+        // Розбиття стрічки на ключі та слова
+        Split_String(str, keys);
+        std::vector<std::string> encrypted(keys.size());
+        // Цикл по стрічці, який по черзі бере диграф та одну літеру
+        // та додає їх у масив стрічок у відповідне місце згідню ключа
+        for (int i = 0, j = 0; i < str.size();)
+        {       
+                // Диграф
+                if (i + 1 < str.size()) {
+                    encrypted[keys[j] - '0' - 1] += str.substr(i, 2);
+                    i += 2;
+                    j++;
+                    if (j == keys.size()) {
+                        j = 0; 
+                    }
+                }
+                // Одна літера
+                if (i < str.size()) {
+                    encrypted[keys[j] - '0' - 1] += str[i];
+                    i++;
+                    j++;
+                    if (j == keys.size()) {
+                        j = 0; 
+                    }
+                }
+        }
+        // Об'єднаяння тексту у одну стрічку
+        for (const std::string& s : encrypted)
         {
-            if (i < matrix[j].size()) {
-                word += matrix[j][i];
+            result += s;
+        }
+        return result;
+
+    }
+    void Split_String(std::string& str, std::string& keys) {
+        std::istringstream iss(str);
+        // Потік задля розбитя стрічки у масив
+        std::vector<std::string> tokens;
+        while (iss >> str) {
+            tokens.push_back(str);
+        }
+        if (tokens.size() < 2) {
+            std::cout << "Невірно введені дані!\n";
+            exit(1);
+        }
+        str.clear();
+        for (size_t i = 0; i < tokens.size(); i++)
+        {   // Перевірка на ключі
+            if (std::isdigit(tokens[i][0])) {
+                std::set<char> key(tokens[i].begin(), tokens[i].end());
+                if (key.size() != tokens[i].size()) {
+                    std::cout << "Ключ повинен містити лише унікальні числа!\n";
+                    exit(1);
+                }
+                keys += tokens[i];
+            }
+            else {
+                // Запис тексту у стрічку
+                str += tokens[i];
             }
         }
-        encrypted[key - 1] = word;
     }
-    // Об'єднаяння тексту у одну стрічку
-    for (const std::string& s : encrypted)
-    {
-        result += s;
+    void Start_Tests() {
+        std::cout << "Запуск тестових данних..." << std::endl;
+        for (size_t i = 0; i < in_test.size(); i++)
+        {
+            std::cout << "Test " << i + 1 << ":\t";
+            if (Encrypt_String(in_test[i]) == out_test[i]) {
+                std::cout << "Успішно" << std::endl;
+            }
+            else {
+                std::cout << "Помилка" << std::endl;
+            }
+        }
     }
-    return result;
-  
-}
-bool compare_string(std::string& str1, std::string& str2) {
-    std::string result = ecnrypt_string(str1);
-   
-    // Порівняння результатів тесту
-    int compare_result = result.compare(str2);
-    if (compare_result == 0) {
-        return true;
-    }
-    else {
-        throw std::runtime_error("Encryption failed");
-    }
-}
+    std::vector<std::string> in_test = { "41325 INCOMPLETECOLUMNARWITHALTERNATINGSINGLELETTERSANDDIGRAPHS",
+       "12 HELLOWORLD",
+       "3412 THISISJUSTATEST",
+       "165432 WORKSMARTNOTHARD",
+       "231 LLOHE" };
+    std::vector<std::string> out_test = { "CECRTEGLENPHPLUTNANTEIOMOWIRSITDDSINTNALINESAALEMHATGLRGR",
+    "HELOORDLWL",
+    "SITASTTHJUESIST",
+    "WONOTARDMRKSHART",
+    "HELLO" };
+};
 int main()
 {
-    // Тестові данні
-    std::vector<std::string> in_test = { "41325 INCOMPLETECOLUMNARWITHALTERNATINGSINGLELETTERSANDDIGRAPHS", 
-        "12 HELLOWORLD", 
-        "3412 THISISJUSTATEST", 
-        "165432 WORKSMARTNOTHARD", 
-        "231 LLOHE" };
-    std::vector<std::string> out_test = { "CECRTEGLENPHPLUTNANTEIOMOWIRSITDDSINTNALINESAALEMHATGLRGR",
-    "HELOORDLWL", 
-    "SITASTTHJUESIST", 
-    "WONOTARDMRKSHART", 
-    "HELLO" };
-    // Запуск тестів
-    std::cout << "If you see 1, the test has succeeded" << std::endl;
-    for (size_t i = 0; i < in_test.size(); i++)
-    {
-        std::cout << "Test " << i + 1 << " is:\t" << compare_string(in_test[i], out_test[i]) << std::endl;
-    }
-    // Ввведення свого тесту
-    std::cout << "Enter your test[EXAMPLE: 1234 THISISTEST]" << std::endl;
-    std::string user_test;
-    std::getline(std::cin, user_test);
-    std::cout << "Result based on your test:\t" << ecnrypt_string(user_test) << std::endl;
+    SetConsoleCP(1251);
+    SetConsoleOutputCP(1251);
+    Task_Solution solution = Task_Solution();
+    solution.Start();
     return 0;
 }
